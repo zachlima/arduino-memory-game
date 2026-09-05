@@ -9,6 +9,12 @@ and appears on a live leaderboard within the browser.
 Firmware is C++, the serial bridge is Python (pyserial and requests), and the
 server and UI are JavaScript with no external dependencies.
 
+## Demo
+
+https://github.com/user-attachments/assets/e55d4d43-c792-4e7c-8879-a64304ea9f18
+
+<img width="582" alt="Leaderboard listing five runs ranked by rounds survived" src="https://github.com/user-attachments/assets/664c4a11-3888-469e-b654-81144bf6b394" />
+
 ## Hardware
 
 ![Wiring diagram](docs/wiring.svg)
