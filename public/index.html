@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Game Leaderboard</title>
+<style>
+  :root {
+    --bg: #14161c;
+    --panel: #1c1f28;
+    --line: #2a2e3a;
+    --text: #e8e9ed;
+    --dim: #8b8fa3;
+    --red: #e15554;
+    --blue: #3f8efc;
+    --green: #4fb477;
+    --yellow: #f2b134;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .chip.red { background: var(--red); }
+  .chip.blue { background: var(--blue); }
+  .chip.green { background: var(--green); }
+  .chip.yellow { background: var(--yellow); }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    color: var(--dim);
+    font-size: 15px;
+    margin: 0 0 32px;
+  }
+
+  .board {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 40px 1fr 90px 110px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+
+  .row:last-child { border-bottom: none; }
+
+  .row.head {
+    color: var(--dim);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .rank {
+    font-weight: 600;
+    color: var(--dim);
+  }
+
+  .rank.gold { color: var(--yellow); }
+
+  .score {
+    font-weight: 700;
+    font-size: 17px;
+  }
+
+  .when {
+    color: var(--dim);
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .empty {
+    padding: 40px 18px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 14px;
+  }
+
+  .refresh-note {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--dim);
+  }
+</style>
+</head>
+<body>
+  <main>
+    <div class="chips">
+      <div class="chip red"></div>
+      <div class="chip blue"></div>
+      <div class="chip green"></div>
+      <div class="chip yellow"></div>
+    </div>
+
+    <h1>Leaderboard</h1>
+    <p class="subtitle">Rounds survived, best runs first.</p>
+
+    <div class="board" id="board">
+      <div class="row head">
+        <span>#</span>
+        <span>Player</span>
+        <span>Rounds</span>
+        <span>When</span>
+      </div>
+      <div class="empty" id="empty" style="display:none;">
+        No games played yet. Go set the first score.
+      </div>
+    </div>
+
+    <p class="refresh-note">Updates automatically every 5 seconds.</p>
+  </main>
+
+<script>
+  const board = document.getElementById("board");
+
+  function timeAgo(isoString) {
+    const seconds = Math.floor((Date.now() - new Date(isoString)) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  async function loadScores() {
+    try {
+      const res = await fetch("/scores");
+      const scores = await res.json();
+
+      document.querySelectorAll(".row:not(.head)").forEach(el => el.remove());
+      const emptyMsg = document.getElementById("empty");
+
+      if (scores.length === 0) {
+        emptyMsg.style.display = "block";
+        return;
+      }
+      emptyMsg.style.display = "none";
+
+      scores.forEach((entry, index) => {
+        const row = document.createElement("div");
+        row.className = "row";
+
+        // textContent, not innerHTML, so stored data can't inject markup
+        const cells = [
+          ["rank" + (index === 0 ? " gold" : ""), String(index + 1)],
+          ["", entry.player ? "Player " + entry.player : "—"],
+          ["score", String(entry.score)],
+          ["when", timeAgo(entry.timestamp)],
+        ];
+
+        for (const [className, text] of cells) {
+          const cell = document.createElement("span");
+          if (className) cell.className = className;
+          cell.textContent = text;
+          row.appendChild(cell);
+        }
+
+        board.appendChild(row);
+      });
+    } catch (err) {
+      console.error("Could not load scores:", err);
+    }
+  }
+
+  loadScores();
+  setInterval(loadScores, 5000);
+</script>
+</body>
+</html>
