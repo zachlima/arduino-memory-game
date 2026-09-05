@@ -3,3 +3,8 @@ node_modules/
 __pycache__/
 scores.json.tmp
 .idea/
+
+# demo footage: too large for the repo, uploaded to GitHub instead
+*.mov
+*.mp4
+*.m4v
